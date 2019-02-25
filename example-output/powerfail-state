@@ -1,0 +1,20 @@
+
+The UPS information shows as following:
+
+	Properties:
+		Model Name................... CP825LCD
+		Firmware Number.............. AEC7101.251
+		Rating Voltage............... 120 V
+		Rating Power................. 450 Watt
+
+	Current UPS status:
+		State........................ Power Failure
+		Power Supply by.............. Battery Power
+		Utility Voltage.............. 0 V
+		Output Voltage............... 120 V
+		Battery Capacity............. 100 %
+		Remaining Runtime............ 38 min.
+		Load......................... 81 Watt(18 %)
+		Test Result.................. Passed at 2019/02/23 16:04:54
+		Last Power Event............. Blackout at 2019/02/23 20:36:14
+

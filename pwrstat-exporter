@@ -1,0 +1,51 @@
+#!/usr/bin/python3
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from datetime import datetime
+import subprocess
+import json
+import re
+
+PORT = 9546
+
+class Server(BaseHTTPRequestHandler):
+    def do_GET(self):
+        pwrstat_output = subprocess.check_output(["pwrstat", "-status"]).decode('utf-8')
+        with open('definitions.json') as f:
+            definitions = json.load(f)
+        contents = self.build_contents(definitions, pwrstat_output)
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(contents)
+        return
+
+    def build_contents(self, definitions, pwrstat_output):
+        retval = str()
+        properties = dict()
+        metrics = dict()
+        for prop in definitions['properties']: # Scrape out properties
+            regex = definitions['properties'][prop]['regex']
+            result = re.search(regex, pwrstat_output, re.MULTILINE)
+            if result:
+                properties[prop] = result.group(1)
+                if properties[prop].isdigit():
+                    properties[prop] = int(properties[prop])
+        for metric in definitions['metrics']: # Scrape out metrics
+            regex_definition = definitions['metrics'][metric]['regex']
+            regex = re.search(regex_definition, pwrstat_output, re.MULTILINE)
+            if regex:
+                if 'index' in definitions['metrics'][metric]:
+                    metrics[metric] = definitions['metrics'][metric]['index'].index(regex.group(1))
+                elif 'eval' in definitions['metrics'][metric]:
+                    metrics[metric] = eval(definitions['metrics'][metric]['eval'])
+                else:
+                    metrics[metric] = int(regex.group(1)) # No index or eval, so treat the metric as int
+        for metric in metrics: # Here we turn our metrics and properties into a prometheus stats page.
+            retval+=' '.join(('#', 'HELP', 'pwrstat_'+metric, definitions['metrics'][metric]['help'])) + '\n'
+            retval+=' '.join(('#', 'TYPE', 'pwrstat_'+metric, definitions['metrics'][metric]['type'])) + '\n'
+            retval+=''.join(('pwrstat_', metric, '{', ','.join(str(key)+'="'+str(value)+'"' for key, value in properties.items()), '}', ' ', str(metrics[metric]))) + '\n'
+        return retval.encode('utf-8')
+
+
+server = HTTPServer(('', PORT), Server)
+server.serve_forever()

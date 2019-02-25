@@ -1,0 +1,78 @@
+{
+  "properties": {
+    "model": {
+      "regex": "^\\s+Model Name\\.+ ([0-9A-Z]+)$"
+    },
+    "firmware": {
+      "regex": "^\\s+Firmware Number\\.+ ([0-9A-Z\\.]+)$"
+    },
+    "voltage": {
+      "regex": "^\\s+Rating Voltage\\.+ ([0-9]+) V$"
+    },
+    "wattage": {
+      "regex": "^\\s+Rating Power\\.+ ([0-9]+) Watt$"
+    }
+  },
+  "metrics": {
+    "state": {
+      "regex": "^\\s+State\\.+ ([A-Za-z ]+)$",
+      "index": [
+        "Normal",
+        "Power Failure"
+      ],
+      "help": "The current state of the UPS.",
+      "type": "gauge"
+    },
+    "supply": {
+      "regex": "^\\s+Power Supply by\\.+ ([A-Za-z ])$",
+      "index": [
+        "Utility Power",
+        "Battery Power"
+      ],
+      "help": "The current power source.",
+      "type": "gauge"
+    },
+    "in_volts": {
+      "regex": "^\\s+Utility Voltage\\.+ ([0-9]+) V$",
+      "help": "Input voltage measurement",
+      "type": "gauge"
+    },
+    "out_volts": {
+      "regex": "^\\s+Output Voltage\\.+ ([0-9]+) V$",
+      "help": "Output voltage measurement",
+      "type": "gauge"
+    },
+    "capacity": {
+      "regex": "^\\s+Battery Capacity\\.+ ([0-9]+) %$",
+      "help": "Remaining battery charge capacity.",
+      "type": "gauge"
+    },
+    "runtime": {
+      "regex": "^\\s+Remaining Runtime\\.+ ([0-9]+) ([a-z]+)\\.$",
+      "eval": "int(regex.group(1))*dict(min=60,sec=1).get(regex.group(2))",
+      "help": "Estimated remaining battery runtime in seconds.",
+      "type": "gauge"
+    },
+    "load": {
+      "regex": "^\\s+Load\\.+ ([0-9]+) Watt\\([0-9]+ %\\)$",
+      "help": "The current load on the UPS in watts.",
+      "type": "gauge"
+    },
+    "test_result": {
+      "regex": "^\\s+Test Result\\.+ ([A-Za-z]+)(?: at [0-9:/ ]+)$",
+      "index": [
+        "Passed",
+        "Failed",
+        "Unknown"
+      ],
+      "help": "The test result of the last self test.",
+      "type": "gauge"
+    },
+    "test_age": {
+      "regex": "^\\s+Test Result\\.+ [A-Za-z]+ at ([0-9:/ ]+)$",
+      "eval": "int((datetime.now()-datetime.strptime(regex.group(1),'%Y/%m/%d %H:%M:%S')).total_seconds())",
+      "help": "The number of seconds since the last self test.",
+      "type": "gauge"
+    }
+  }
+}
