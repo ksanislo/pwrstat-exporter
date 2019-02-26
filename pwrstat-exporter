@@ -8,6 +8,10 @@ import re
 PORT = 9546
 
 class Server(BaseHTTPRequestHandler):
+    # Remove console logging
+    def log_message(self, format, *args):
+        None
+
     def do_GET(self):
         pwrstat_output = subprocess.check_output(["pwrstat", "-status"]).decode('utf-8')
         with open('definitions.json') as f:
